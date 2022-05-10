@@ -1,8 +1,7 @@
 #ifndef FACTORY_SPHERE_HPP_INCLUDED
 #define FACTORY_SPHERE_HPP_INCLUDED
 
-#include <memory>
-#include "object.hpp"
+#include "factory.hpp"
 #include "sphere.hpp"
 
 namespace raytrace{

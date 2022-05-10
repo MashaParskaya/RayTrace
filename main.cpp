@@ -1,3 +1,6 @@
+#ifndef MAIN_CPP
+#define MAIN_CPP
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -131,6 +134,11 @@ int main(){
       }
 
       vec3f intersection = camera + nearest_obj->to_intersection(camera, direction) * direction;
+
+      if (dot(intersection, norm) > dist2){
+        continue;
+      }
+
       vec3f normal_to_surf = nearest_obj->normal_to_surface(intersection);
       vec3f shifted_point = intersection + 1e-5 * normal_to_surf;
       vec3f intersection_to_light = (light - shifted_point).normalized();
@@ -161,3 +169,5 @@ int main(){
 
   return 0;
 }
+
+#endif

@@ -1,8 +1,7 @@
 #ifndef FACTORY_TETRA_HPP_INCLUDED
 #define FACTORY_TETRA_HPP_INCLUDED
 
-#include <memory>
-#include "object.hpp"
+#include "factory.hpp"
 #include "tetrahedron.hpp"
 
 namespace raytrace{

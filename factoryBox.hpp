@@ -1,8 +1,7 @@
 #ifndef FACTORY_BOX_HPP_INCLUDED
 #define FACTORY_BOX_HPP_INCLUDED
 
-#include <memory>
-#include "object.hpp"
+#include "factory.hpp"
 #include "box.hpp"
 
 namespace raytrace{

@@ -16,11 +16,13 @@ private:
 public:
   Object(){}
 
+
   Object(int amount, const vec3f* params_){
     for (int i = 0; i < amount; i++){
       params.push_back(params_[i]);
     }
   }
+
 
   Object(std::vector<vec3f> params_){
     for (auto i: params_){
@@ -28,57 +30,49 @@ public:
     }
   }
 
+
   void set_color(rgb color){
     ambient = color;
     diffuse = color * 6;
   }
 
+
   std::vector<vec3f> get_params(){
     return params;
   }
+
 
   rgb get_ambient(){
     return ambient;
   }
 
+
   rgb get_diffuse(){
     return diffuse;
   }
+
 
   rgb get_specular(){
     return specular;
   }
 
+
   virtual void output() = 0;
+
 
   virtual float to_intersection(const vec3f& ray_origin, const vec3f& ray_direction) = 0;
 
+
   virtual vec3f get_center() = 0;
+
 
   virtual vec3f normal_to_surface(const vec3f& intersection) = 0;
 
 };
 
-Object* nearest_object(std::vector<Object*> objects, vec3f ray_origin, vec3f ray_direction){
-  Object* nearest_obj = NULL;
-  float min_distance = -1;
-  #pragma omp parallel for
-  for (auto curr_obj: objects){
-    float curr_distance = curr_obj->to_intersection(ray_origin, ray_direction);
-    if (min_distance == -1 || curr_distance > 0 && curr_distance < min_distance){
-      nearest_obj = curr_obj;
-      min_distance = curr_distance;
-    }
-  }
-  if (min_distance > 0){
-    return nearest_obj;
-  }
-  else{
-    return NULL;
-  }
-}
+Object* nearest_object(std::vector<Object*> objects, vec3f ray_origin, vec3f ray_direction);
 
-}
+} //namespace raytrace
 
 
 #endif
