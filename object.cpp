@@ -8,7 +8,6 @@ namespace raytrace{
 Object* nearest_object(std::vector<Object*> objects, vec3f ray_origin, vec3f ray_direction){
   Object* nearest_obj = NULL;
   float min_distance = -1;
-  #pragma omp parallel for
   for (auto curr_obj: objects){
     float curr_distance = curr_obj->to_intersection(ray_origin, ray_direction);
     if (min_distance == -1 || curr_distance > 0 && curr_distance < min_distance){

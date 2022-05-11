@@ -5,6 +5,8 @@
 #include <fstream>
 #include <cmath>
 #include <map>
+#include <string>
+#include <chrono>
 #include "vecmath.hpp"
 #include "figures.hpp"
 #include "CImg-3.1.0/CImg.h"
@@ -117,11 +119,64 @@ int main(){
     obj->set_color(blue * (maxdist - curr_dist) / (maxdist - mindist) + green * (curr_dist - mindist) / (maxdist - mindist));
   }
 
+  CImg<unsigned char>  theImage_omp(width,height,1,3,0);
   CImg<unsigned char>  theImage(width,height,1,3,0);
+
+  auto start_time = chrono::high_resolution_clock::now();
 
   #pragma omp parallel for
   for (int i = 0; i < height; i++){
     #pragma omp parallel for
+    for (int j = 0; j < width; j++){
+
+      vec3f pixel;
+      pixel = screen_center + vert * delta_h * (1 - i * 2.0 / height) + hor * delta_w * ((1 - j * 2.0 / width));
+
+      vec3f direction = (pixel - camera).normalized();
+      Object* nearest_obj = nearest_object(objects, camera, direction);
+      if (nearest_obj == NULL){
+        continue;
+      }
+
+      vec3f intersection = camera + nearest_obj->to_intersection(camera, direction) * direction;
+
+      if (dot(intersection, norm) > dist2){
+        continue;
+      }
+
+      vec3f normal_to_surf = nearest_obj->normal_to_surface(intersection);
+      vec3f shifted_point = intersection + 1e-5 * normal_to_surf;
+      vec3f intersection_to_light = (light - shifted_point).normalized();
+      Object* obstacle = nearest_object(objects, shifted_point, intersection_to_light);
+
+      if (obstacle != NULL){
+        continue;
+      }
+
+      vec3f illumination(0, 0, 0);
+      illumination += nearest_obj->get_ambient();
+      illumination += nearest_obj->get_diffuse() * dot(intersection_to_light, normal_to_surf);
+      vec3f intersection_to_camera = (camera - intersection).normalized();
+      vec3f H = (intersection_to_light + intersection_to_camera).normalized();
+      illumination += nearest_obj->get_specular() * pow(dot(normal_to_surf, H), 25);
+      illumination.clip(0, 1);
+      illumination = vecround(illumination * 255);
+
+      theImage_omp(j,i,0) = illumination.getX();
+      theImage_omp(j,i,1) = illumination.getY();
+      theImage_omp(j,i,2) = illumination.getZ();
+    }
+  }
+
+  auto elapsed_time = chrono::high_resolution_clock::now() - start_time;
+  long long ns = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
+  ns = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
+  cout << "Time consumed with omp: " << ns << "ms" << endl;
+
+
+  start_time = chrono::high_resolution_clock::now();
+
+  for (int i = 0; i < height; i++){
     for (int j = 0; j < width; j++){
 
       vec3f pixel;
@@ -163,8 +218,13 @@ int main(){
     }
   }
 
-  CImgDisplay main_disp(theImage); // display it
-  theImage.save_bmp("output.bmp"); // write it
+  elapsed_time = chrono::high_resolution_clock::now() - start_time;
+  ns = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
+  ns = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
+  cout << "Time consumed without omp: " << ns << "ms" << endl;
+
+  CImgDisplay main_disp(theImage_omp); // display it
+  theImage_omp.save_bmp("output.bmp"); // write it
   std::cin.ignore();
 
   return 0;
